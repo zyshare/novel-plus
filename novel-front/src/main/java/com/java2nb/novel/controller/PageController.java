@@ -1,19 +1,24 @@
 package com.java2nb.novel.controller;
 
+import com.java2nb.novel.core.bean.ResultBean;
+import com.java2nb.novel.core.bean.UserDetails;
 import com.java2nb.novel.core.utils.ThreadLocalUtil;
-import com.java2nb.novel.entity.Book;
-import com.java2nb.novel.entity.BookContent;
-import com.java2nb.novel.entity.BookIndex;
-import com.java2nb.novel.entity.News;
+import com.java2nb.novel.entity.*;
+import com.java2nb.novel.service.AuthorService;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.NewsService;
+import com.java2nb.novel.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.servlet.http.HttpServletRequest;
+import java.net.URLEncoder;
 import java.util.List;
 
 /**
@@ -22,11 +27,15 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 @Controller
-public class PageController{
+public class PageController extends BaseController{
 
     private final BookService bookService;
 
     private final NewsService newsService;
+
+    private final AuthorService authorService;
+
+    private final UserService userService;
 
 
     @RequestMapping("{url}.html")
@@ -35,7 +44,22 @@ public class PageController{
     }
 
     @RequestMapping("{module}/{url}.html")
-    public String module2(@PathVariable("module") String module, @PathVariable("url") String url) {
+    public String module2(@PathVariable("module") String module, @PathVariable("url") String url,HttpServletRequest request) {
+
+        if(request.getRequestURI().startsWith("/author")) {
+            //访问作者专区
+            UserDetails user = getUserDetails(request);
+            if (user == null) {
+                //未登录
+                return "redirect:/user/login.html?originUrl=" + request.getRequestURI();
+            }
+
+            boolean isAuthor = authorService.isAuthor(user.getId());
+            if (!isAuthor) {
+                return "redirect:/author/register.html" ;
+            }
+        }
+
         return module + "/" + url;
     }
 
@@ -100,7 +124,7 @@ public class PageController{
      * 内容页
      * */
     @RequestMapping("/book/{bookId}/{bookIndexId}.html")
-    public String indexList(@PathVariable("bookId") Long bookId,@PathVariable("bookIndexId") Long bookIndexId, Model model) {
+    public String indexList(@PathVariable("bookId") Long bookId,@PathVariable("bookIndexId") Long bookIndexId, HttpServletRequest request,Model model) {
         //查询书籍
         Book book = bookService.queryBookDetail(bookId);
         model.addAttribute("book",book);
@@ -116,6 +140,23 @@ public class PageController{
         //查询内容
         BookContent bookContent = bookService.queryBookContent(bookIndex.getId());
         model.addAttribute("bookContent",bookContent);
+        //判断该目录是否收费
+        if(bookIndex.getIsVip()!=null && bookIndex.getIsVip() == 1 ){
+            UserDetails user = getUserDetails(request);
+            if(user == null){
+                //未登录
+                return "redirect:/user/login.html?originUrl="+request.getRequestURI();
+            }
+            //收费，判断用户是否购买过该目录
+            boolean isBuy = userService.queryIsBuyBookIndex(user.getId(),bookIndexId);
+            if(!isBuy){
+                //没有购买过，需要购买
+                bookContent.setContent(null);
+                model.addAttribute("needBuy",true);
+                return "book/book_content";
+            }
+        }
+        model.addAttribute("needBuy",false);
         return ThreadLocalUtil.getTemplateDir()+"book/book_content";
     }
 
@@ -140,5 +181,31 @@ public class PageController{
         model.addAttribute("news",news);
         return "about/news_info";
     }
+
+
+    /**
+     * 作者注册页面
+     * */
+    @RequestMapping("author/register.html")
+    public String authorRegister(Author author, HttpServletRequest request, Model model){
+        UserDetails user = getUserDetails(request);
+        if(user == null){
+            //未登录
+            return "redirect:/user/login.html?originUrl=/author/register.html";
+        }
+
+        if(StringUtils.isNotBlank(author.getInviteCode())) {
+            //提交作者注册信息
+            String errorInfo = authorService.register(user.getId(), author);
+            if(StringUtils.isBlank(errorInfo)){
+                //注册成功
+                return "redirect:/author/index.html";
+            }
+            model.addAttribute("LabErr",errorInfo);
+            model.addAttribute("author",author);
+        }
+        return "author/register";
+    }
+
 
 }

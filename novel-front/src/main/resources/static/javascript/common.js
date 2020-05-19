@@ -1,6 +1,8 @@
 var needLoginPath = ['/user/favorites.html','/user/comment.html','/user/feedback.html',
     '/user/feedback_list.html','/user/read_history.html','/user/set_name.html',
-    '/user/set_password.html','/user/set_sex.html','/user/setup.html','/user/userinfo.html'];
+    '/user/set_password.html','/user/set_sex.html','/user/setup.html','/user/userinfo.html',
+    "/pay/index.html," +
+    "/author/register.html","/author/index.html"];
 var isLogin = false;
 var url = window.location.search;
 //key(需要检索的键）
@@ -63,7 +65,7 @@ if(!token){
         success: function(data){
             if(data.code == 200){
                 $(".user_link").html("<i class=\"line mr20\">|</i>" +
-                    "<a href=\"/user/userinfo.html\"  class=\"mr15\">"+data.data.username+"</a>" +
+                    "<a href=\"/user/userinfo.html\"  class=\"mr15\">"+data.data.nickName+"</a>" +
                     "<a href=\"javascript:logout()\" >退出</a>");
                 ;
                 if("/user/login.html" == window.location.pathname){

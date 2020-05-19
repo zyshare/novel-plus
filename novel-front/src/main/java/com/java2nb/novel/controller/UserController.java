@@ -7,6 +7,7 @@ import com.java2nb.novel.core.cache.CacheService;
 import com.java2nb.novel.core.enums.ResponseStatus;
 import com.java2nb.novel.core.utils.RandomValidateCodeUtil;
 import com.java2nb.novel.entity.User;
+import com.java2nb.novel.entity.UserBuyRecord;
 import com.java2nb.novel.form.UserForm;
 import com.java2nb.novel.service.BookService;
 import com.java2nb.novel.service.UserService;
@@ -100,7 +101,9 @@ public class UserController extends BaseController {
             token = jwtTokenUtil.refreshToken(token);
             Map<String, Object> data = new HashMap<>(2);
             data.put("token", token);
-            data.put("username", jwtTokenUtil.getUserDetailsFromToken(token).getUsername());
+            UserDetails userDetail = jwtTokenUtil.getUserDetailsFromToken(token);
+            data.put("username", userDetail.getUsername());
+            data.put("nickName", userDetail.getNickName());
             return ResultBean.ok(data);
 
         } else {
@@ -231,6 +234,12 @@ public class UserController extends BaseController {
             return ResultBean.fail(ResponseStatus.NO_LOGIN);
         }
         userService.updateUserInfo(userDetails.getId(),user);
+        if(user.getNickName() != null){
+            userDetails.setNickName(user.getNickName());
+            Map<String, Object> data = new HashMap<>(1);
+            data.put("token", jwtTokenUtil.generateToken(userDetails));
+            return ResultBean.ok(data);
+        }
         return ResultBean.ok();
     }
 
@@ -262,6 +271,21 @@ public class UserController extends BaseController {
         }
         return ResultBean.ok(new PageInfo<>(bookService.listCommentByPage(userDetails.getId(),null,page,pageSize)));
     }
+
+
+    /**
+     * 购买小说章节
+     * */
+    @PostMapping("buyBookIndex")
+    public ResultBean buyBookIndex(UserBuyRecord buyRecord, HttpServletRequest request) {
+        UserDetails userDetails = getUserDetails(request);
+        if (userDetails == null) {
+            return ResultBean.fail(ResponseStatus.NO_LOGIN);
+        }
+        userService.buyBookIndex(userDetails.getId(),buyRecord);
+        return ResultBean.ok();
+    }
+
 
 
 

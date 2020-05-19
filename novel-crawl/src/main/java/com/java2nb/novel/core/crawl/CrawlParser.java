@@ -3,12 +3,17 @@ package com.java2nb.novel.core.crawl;
 import com.java2nb.novel.core.utils.HttpUtil;
 import com.java2nb.novel.core.utils.IdWorker;
 import com.java2nb.novel.core.utils.RandomBookInfoUtil;
+import com.java2nb.novel.core.utils.RestTemplateUtil;
 import com.java2nb.novel.entity.Book;
 import com.java2nb.novel.entity.BookContent;
 import com.java2nb.novel.entity.BookIndex;
 import com.java2nb.novel.utils.Constants;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -22,17 +27,22 @@ import static java.util.regex.Pattern.compile;
  *
  * @author Administrator
  */
+@Slf4j
 public class CrawlParser {
 
     public static final Integer BOOK_INDEX_LIST_KEY = 1;
 
     public static final Integer BOOK_CONTENT_LIST_KEY = 2;
 
+    private static RestTemplate restTemplate = RestTemplateUtil.getInstance("utf-8");
+
+    private static ThreadLocal <Integer> retryCount = new ThreadLocal<>();
+
     @SneakyThrows
     public static Book parseBook(RuleBean ruleBean, String bookId) {
         Book book = new Book();
         String bookDetailUrl = ruleBean.getBookDetailUrl().replace("{bookId}", bookId);
-        String bookDetailHtml = HttpUtil.getByHttpClient(bookDetailUrl);
+        String bookDetailHtml = getByHttpClient(bookDetailUrl);
         if (bookDetailHtml != null) {
             Pattern bookNamePatten = compile(ruleBean.getBookNamePatten());
             Matcher bookNameMatch = bookNamePatten.matcher(bookDetailHtml);
@@ -54,6 +64,9 @@ public class CrawlParser {
                         boolean isFindPicUrl = picUrlMatch.find();
                         if (isFindPicUrl) {
                             String picUrl = picUrlMatch.group(1);
+                            if(StringUtils.isNotBlank(picUrl) && StringUtils.isNotBlank(ruleBean.getPicUrlPrefix())) {
+                                picUrl = ruleBean.getPicUrlPrefix() + picUrl;
+                            }
                             //设置封面图片路径
                             book.setPicUrl(picUrl);
                         }
@@ -136,8 +149,13 @@ public class CrawlParser {
         List<BookContent> contentList = new ArrayList<>();
         //读取目录
         String indexListUrl = ruleBean.getBookIndexUrl().replace("{bookId}", sourceBookId);
-        String indexListHtml = HttpUtil.getByHttpClient(indexListUrl);
+        String indexListHtml = getByHttpClient(indexListUrl);
+
         if (indexListHtml != null) {
+            if(StringUtils.isNotBlank(ruleBean.getBookIndexStart())){
+                indexListHtml = indexListHtml.substring(indexListHtml.indexOf(ruleBean.getBookIndexStart()) + ruleBean.getBookIndexStart().length());
+            }
+
             Pattern indexIdPatten = compile(ruleBean.getIndexIdPatten());
             Matcher indexIdMatch = indexIdPatten.matcher(indexListHtml);
 
@@ -162,8 +180,8 @@ public class CrawlParser {
                     String contentUrl = ruleBean.getBookContentUrl().replace("{bookId}", sourceBookId).replace("{indexId}", indexIdMatch.group(1));
 
                     //查询章节内容
-                    String contentHtml = HttpUtil.getByHttpClient(contentUrl);
-                    if (contentHtml != null) {
+                    String contentHtml = getByHttpClient(contentUrl);
+                    if (contentHtml != null && !contentHtml.contains("正在手打中")) {
                         String content = contentHtml.substring(contentHtml.indexOf(ruleBean.getContentStart()) + ruleBean.getContentStart().length());
                         content = content.substring(0, content.indexOf(ruleBean.getContentEnd()));
                         //TODO插入章节目录和章节内容
@@ -234,6 +252,39 @@ public class CrawlParser {
         }
 
         return result;
+    }
+
+
+    private static String getByHttpClient(String url) {
+        try {
+            ResponseEntity<String> forEntity = restTemplate.getForEntity(url, String.class);
+            if (forEntity.getStatusCode() == HttpStatus.OK) {
+                String body = forEntity.getBody();
+                if(body.length() < Constants.INVALID_HTML_LENGTH){
+                    return processErrorHttpResult(url);
+                }
+                //成功获得html内容
+                return body;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return processErrorHttpResult(url);
+
+    }
+
+    @SneakyThrows
+    private static String processErrorHttpResult(String url){
+        Integer count = retryCount.get();
+        if(count == null){
+            count = 0;
+        }
+        if(count < Constants.HTTP_FAIL_RETRY_COUNT){
+            Thread.sleep(  new Random().nextInt(10*1000));
+            retryCount.set(++count);
+            return getByHttpClient(url);
+        }
+        return null;
     }
 
 

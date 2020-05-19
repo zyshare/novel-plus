@@ -2,9 +2,13 @@
 
 # 小说精品屋-plus
 
+#### 演示地址
+
+[点击前往](http://www.java2nb.com)（前台门户）
+
 #### 前言
 
-小说精品屋-plus致力于打造一个完整的商用小说门户平台。
+小说精品屋-plus致力于打造一个完整的商用小说门户平台，使用前建议先阅读此文档。
 
 #### 项目介绍
 
@@ -20,9 +24,9 @@
 - [x] 排行榜。
 - [x] 小说评论模块。
 - [x] 阅读主题模块。
-- [ ] 作家专区。
-- [ ] 充值。
-- [ ] 后台管理系统。
+- [x] 作家专区。
+- [x] 充值。
+- [x] 后台管理系统。
 - [x] 爬虫管理系统。
 
 #### 项目结构
@@ -40,17 +44,47 @@ Springboot+Mybatis+Mysql+Ehcache+Thymeleaf+Layui
 
 #### PC站截图
 
+1. 首页
 
+![img](https://oscimg.oschina.net/oscnet/up-bbb1c7f72e183327bff754a9fa8bb75223e.png)
 
-![index](./assets/1588548668698.gif)
+2. 分类索引页
 
+![img](https://oscimg.oschina.net/oscnet/up-d0b2e03129bfae47b8bb96a491b73d383c5.png)
 
+3. 排行榜
 
-![index](./assets/1588548784395.gif)
+![img](https://oscimg.oschina.net/oscnet/up-78d5a68586cd92a86c669311f414508f922.png)
 
+4. 详情页
 
+![img](https://oscimg.oschina.net/oscnet/up-8be2495a2869f93626b0c9c1df6f329747a.png)
 
-![index](./assets/1588548916980.gif)
+5. 阅读页
+
+![img](https://oscimg.oschina.net/oscnet/up-517c84148d2db8e11717a8bbecc57fa1be7.png)
+
+6. 用户中心
+
+![img](https://oscimg.oschina.net/oscnet/up-805a30e7a663a3fd5cb39a7ea26bc132a01.png)
+
+7. 充值
+
+![img](https://oscimg.oschina.net/oscnet/up-5a601b0b3af3224d0bebcfe12fc15075d34.png)
+
+![img](https://oscimg.oschina.net/oscnet/up-face25d02c07b05b2ce954cc4bf4ee6a0cc.png)
+
+8.作家专区
+
+![img](https://oscimg.oschina.net/oscnet/up-30766372cc7f56480ff1d7d55198204f6ea.png)
+
+![img](https://oscimg.oschina.net/oscnet/up-9737995e465b86f3bee3211221f6c3b8a56.png)
+
+9.购买
+
+![img](https://oscimg.oschina.net/oscnet/up-ce0f585efd82a9670335f118cf5897c85e9.png)
+
+![img](https://oscimg.oschina.net/oscnet/up-f849960f4c1303fea77d26e64fc505a7180.png)
 
 
 
@@ -82,7 +116,11 @@ Springboot+Mybatis+Mysql+Ehcache+Thymeleaf+Layui
 
 ![QQ图片20191018161901](./assets/crawl_index.png)
 
+#### 后台管理系统截图
 
+![img](https://oscimg.oschina.net/oscnet/up-0552343538674a22a64819834100558f39b.png)
+
+![img](https://oscimg.oschina.net/oscnet/up-faf5dda7320674c29a1772bc0c81d74762e.png)
 
 #### 安装步骤
 
@@ -107,9 +145,13 @@ Springboot+Mybatis+Mysql+Ehcache+Thymeleaf+Layui
 
 **喜欢此项目的可以给我的GitHub和Gitee加个Star支持一下 。**
 
-#### 演示地址
+#### 其他安装教程
 
-[点击前往](http://www.java2nb.com)（前台门户）
+包安装教程：[点击前往](https://my.oschina.net/java2nb/blog/4272630) 
+
+宝塔安装教程（非官方）：[点击前往](https://www.daniao.org/9166.html) 
+
+docker安装教程：[点击前往](https://my.oschina.net/java2nb/blog/4271989)
 
 #### 代码仓库
 
@@ -119,7 +161,7 @@ Springboot+Mybatis+Mysql+Ehcache+Thymeleaf+Layui
 
 #### QQ交流群
 
-![mini-code](./assets/qq_group.png)
+![mini-code](./assets/小说精品屋开源项目交流群群聊二维码.png)
 
 #### 捐赠支持
 

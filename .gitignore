@@ -11,3 +11,8 @@
 /novel-crawl/novel-crawl.iml
 /novel-crawl/target
 /novel-admin/target
+/*.iml
+/novel-admin/*.iml
+.DS_Store
+/novel-admin/cachedata
+/novel-admin/logs
